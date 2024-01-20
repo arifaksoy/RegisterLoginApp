@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RegisterLoginApp.Server.DTO;
+using RegisterLoginApp.Server.Repositories;
 
 namespace RegisterLoginApp.Server.Controllers
 {
@@ -10,9 +11,11 @@ namespace RegisterLoginApp.Server.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
-        public AuthController(UserManager<IdentityUser> userManager)
+        private readonly ITokenRepository _tokenRepository;
+        public AuthController(UserManager<IdentityUser> userManager,ITokenRepository tokenRepository)
         {
             _userManager = userManager;
+            _tokenRepository = tokenRepository;
         }
         //api/auth/register
         [HttpPost]
@@ -54,8 +57,13 @@ namespace RegisterLoginApp.Server.Controllers
                 var checkPassword = await _userManager.CheckPasswordAsync(user, loginRequestDTO.Password);
                 if (checkPassword)
                 {
-                    //create token
-                    return Ok("logined");
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if(roles != null)
+                    {
+                        var jwtToken =  _tokenRepository.CreateJwtToken(user,roles.ToList());
+                        var response = new LoginResponseDTO { JwtToken = jwtToken };
+                        return Ok(response);
+                    }  
                 }
             }
 

@@ -4,12 +4,16 @@ using RegisterLoginApp.Server.Data;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using RegisterLoginApp.Server.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+
 builder.Services.AddDbContext<RegisterLoginDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("RegisterLoginDBConnectionString")));
 
